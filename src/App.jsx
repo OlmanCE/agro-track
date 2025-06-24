@@ -7,10 +7,13 @@ import LoginPage from './components/auth/LoginPage'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import PendingApprovalPage from './components/auth/PendingApprovalPage'
 
-// Páginas (por crear)
+// Páginas principales
 import HomePage from './pages/HomePage'
 import AdminPage from './pages/AdminPage'
 import CamaPage from './pages/CamaPage'
+
+// Nuevas páginas para formularios
+import CamaFormPage from './pages/CamaFormPage'
 
 // Hook de autenticación
 import { useAuth } from './hooks/useAuth'
@@ -121,6 +124,26 @@ function App() {
             element={
               <ProtectedRoute requireAdmin={true}>
                 <AdminPage />
+              </ProtectedRoute>
+            } 
+          />
+
+          {/* Nueva cama - Solo admins */}
+          <Route 
+            path="/admin/cama/nueva" 
+            element={
+              <ProtectedRoute requireAdmin={true}>
+                <CamaFormPage mode="create" />
+              </ProtectedRoute>
+            } 
+          />
+
+          {/* Editar cama - Solo admins */}
+          <Route 
+            path="/admin/cama/:camaId/editar" 
+            element={
+              <ProtectedRoute requireAdmin={true}>
+                <CamaFormPage mode="edit" />
               </ProtectedRoute>
             } 
           />
