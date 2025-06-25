@@ -28,7 +28,8 @@ import {
     Add as AddIcon,
     LocalFlorist as PlantIcon,
     Visibility as ViewIcon,
-    Edit as EditIcon
+    Edit as EditIcon,
+    QrCode as QrIcon
 } from '@mui/icons-material'
 import { useAuth } from '../../hooks/useAuth'
 import { adminUserService, camasService } from '../../firebase/firebaseService'
@@ -36,6 +37,7 @@ import { useNavigate } from 'react-router-dom'
 import PendingUsersPanel from './PendingUsersPanel'
 import AllUsersPanel from './AllUsersPanel'
 import UserStatsCards from './UserStatsCards'
+import QrModal from '../qrGenerator/QrModal'
 
 const AdminDashboard = () => {
     const { user, userName } = useAuth()
@@ -46,6 +48,10 @@ const AdminDashboard = () => {
     const [camas, setCamas] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
+    
+    // Estados para QR Modal
+    const [qrModalOpen, setQrModalOpen] = useState(false)
+    const [selectedCama, setSelectedCama] = useState(null)
 
     // Cargar datos iniciales
     useEffect(() => {
@@ -97,6 +103,18 @@ const AdminDashboard = () => {
 
     const handleRefresh = () => {
         loadDashboardData()
+    }
+
+    // Manejar apertura de QR modal
+    const handleOpenQrModal = (cama) => {
+        setSelectedCama(cama)
+        setQrModalOpen(true)
+    }
+
+    // Cerrar QR modal
+    const handleCloseQrModal = () => {
+        setQrModalOpen(false)
+        setSelectedCama(null)
     }
 
     if (loading) {
@@ -320,6 +338,16 @@ const AdminDashboard = () => {
                                                             </Button>
                                                             <Button
                                                                 size="small"
+                                                                variant="outlined"
+                                                                color="secondary"
+                                                                startIcon={<QrIcon />}
+                                                                onClick={() => handleOpenQrModal(cama)}
+                                                                sx={{ textTransform: 'none' }}
+                                                            >
+                                                                QR
+                                                            </Button>
+                                                            <Button
+                                                                size="small"
                                                                 variant="contained"
                                                                 startIcon={<EditIcon />}
                                                                 onClick={() => navigate(`/admin/cama/${cama.id}/editar`)}
@@ -346,24 +374,37 @@ const AdminDashboard = () => {
                             💡 Guía rápida del administrador
                         </Typography>
                         <Grid container spacing={2}>
-                            <Grid item xs={12} md={4}>
+                            <Grid item xs={12} md={3}>
                                 <Typography variant="body2">
                                     <strong>Usuarios Pendientes:</strong> Aprobar o rechazar nuevos registros
                                 </Typography>
                             </Grid>
-                            <Grid item xs={12} md={4}>
+                            <Grid item xs={12} md={3}>
                                 <Typography variant="body2">
                                     <strong>Gestión de Usuarios:</strong> Activar/desactivar y cambiar permisos
                                 </Typography>
                             </Grid>
-                            <Grid item xs={12} md={4}>
+                            <Grid item xs={12} md={3}>
                                 <Typography variant="body2">
                                     <strong>Gestión de Camas:</strong> Crear, editar y generar códigos QR
+                                </Typography>
+                            </Grid>
+                            <Grid item xs={12} md={3}>
+                                <Typography variant="body2">
+                                    <strong>Códigos QR:</strong> Generar, descargar e imprimir para cada cama
                                 </Typography>
                             </Grid>
                         </Grid>
                     </CardContent>
                 </Card>
+
+                {/* QR Modal */}
+                <QrModal
+                    open={qrModalOpen}
+                    onClose={handleCloseQrModal}
+                    camaId={selectedCama?.id}
+                    camaData={selectedCama}
+                />
             </Container>
         </Box>
     )
