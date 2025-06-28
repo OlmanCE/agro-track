@@ -20,6 +20,13 @@ import {
 import { auth, db, googleProvider } from "./config"
 
 // ===================================
+// 📦 IMPORTAR NUEVOS SERVICIOS
+// ===================================
+import { viveroService } from "./viveroService"
+import { camaService } from "./camaService"
+import { chartService } from "./chartService"
+
+// ===================================
 // 🔐 AUTH SERVICES
 // ===================================
 
@@ -231,155 +238,72 @@ export const userService = {
 }
 
 // ===================================
-// 🌱 CAMAS SERVICES
+// 🌱 CAMAS SERVICES - LEGACY (COMPATIBILIDAD)
 // ===================================
+// NOTA: Mantenemos estos servicios para compatibilidad con código existente
+// pero se recomienda usar camaService para nuevas funcionalidades
 
 export const camasService = {
-    // Obtener todas las camas
+    // 🔄 LEGACY: Obtener todas las camas (ahora usa el nuevo camaService)
     getAllCamas: async () => {
         try {
-            const camasCollection = collection(db, "camas")
-            const camasSnapshot = await getDocs(camasCollection)
-            const camas = camasSnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }))
-            return { success: true, data: camas }
+            // Para compatibilidad, obtenemos todas las camas de todos los viveros
+            return await camaService.getAllCamasGlobal()
         } catch (error) {
-            console.error("❌ Error al obtener camas:", error)
+            console.error("❌ Error al obtener camas (legacy):", error)
             return { success: false, error: "Error al cargar las camas" }
         }
     },
 
-    // Obtener una cama específica
+    // 🔄 LEGACY: Obtener una cama específica
     getCama: async (camaId) => {
         try {
-            const camaDocRef = doc(db, "camas", camaId)
-            const camaDoc = await getDoc(camaDocRef)
-            
-            if (camaDoc.exists()) {
-                return { 
-                    success: true, 
-                    data: { id: camaDoc.id, ...camaDoc.data() } 
-                }
+            // PROBLEMA: No sabemos el viveroId, así que buscamos globalmente
+            const allCamasResult = await camaService.getAllCamasGlobal()
+            if (!allCamasResult.success) {
+                return allCamasResult
+            }
+
+            const cama = allCamasResult.data.find(c => c.id === camaId)
+            if (cama) {
+                return { success: true, data: cama }
             } else {
                 return { success: false, error: "Cama no encontrada" }
             }
         } catch (error) {
-            console.error("❌ Error al obtener cama:", error)
+            console.error("❌ Error al obtener cama (legacy):", error)
             return { success: false, error: "Error al cargar la cama" }
         }
     },
 
-    // Crear nueva cama
+    // 🚨 DEPRECATED: Crear nueva cama (usar camaService.createCama)
     createCama: async (camaId, camaData) => {
-        try {
-            const camaDocRef = doc(db, "camas", camaId)
-            
-            // Verificar si ya existe
-            const existingCama = await getDoc(camaDocRef)
-            if (existingCama.exists()) {
-                return { success: false, error: "Ya existe una cama con este ID" }
-            }
-
-            const newCamaData = {
-                nombrePlanta: camaData.nombrePlanta,
-                cantidadPlantas: camaData.cantidadPlantas,
-                esquejes: camaData.esquejes,
-                sustrato: camaData.sustrato,
-                tarroSize: camaData.tarroSize,
-                tarroUnidad: camaData.tarroUnidad,
-                createdAt: serverTimestamp(),
-                updatedAt: serverTimestamp()
-            }
-            
-            await setDoc(camaDocRef, newCamaData)
-            console.log("✅ Cama creada:", camaId)
-            return { success: true, data: { id: camaId, ...newCamaData } }
-        } catch (error) {
-            console.error("❌ Error al crear cama:", error)
-            return { success: false, error: "Error al crear la cama" }
-        }
+        console.warn("⚠️ DEPRECATED: Usar camaService.createCama(viveroId, camaId, camaData)")
+        return { success: false, error: "Método deprecado. Especifica el viveroId." }
     },
 
-    // Actualizar cama existente
+    // 🚨 DEPRECATED: Actualizar cama (usar camaService.updateCama)
     updateCama: async (camaId, updates) => {
-        try {
-            const camaDocRef = doc(db, "camas", camaId)
-            await updateDoc(camaDocRef, {
-                ...updates,
-                updatedAt: serverTimestamp()
-            })
-            console.log("✅ Cama actualizada:", camaId)
-            return { success: true }
-        } catch (error) {
-            console.error("❌ Error al actualizar cama:", error)
-            return { success: false, error: "Error al actualizar la cama" }
-        }
+        console.warn("⚠️ DEPRECATED: Usar camaService.updateCama(viveroId, camaId, updates)")
+        return { success: false, error: "Método deprecado. Especifica el viveroId." }
     },
 
-    // Eliminar cama
+    // 🚨 DEPRECATED: Eliminar cama (usar camaService.deleteCama)
     deleteCama: async (camaId) => {
-        try {
-            const camaDocRef = doc(db, "camas", camaId)
-            await deleteDoc(camaDocRef)
-            console.log("✅ Cama eliminada:", camaId)
-            return { success: true }
-        } catch (error) {
-            console.error("❌ Error al eliminar cama:", error)
-            return { success: false, error: "Error al eliminar la cama" }
-        }
+        console.warn("⚠️ DEPRECATED: Usar camaService.deleteCama(viveroId, camaId)")
+        return { success: false, error: "Método deprecado. Especifica el viveroId." }
     },
 
-    // Buscar camas por nombre de planta
+    // 🔄 LEGACY: Buscar camas por nombre de planta
     searchCamasByPlant: async (plantName) => {
         try {
-            const camasCollection = collection(db, "camas")
-            const q = query(
-                camasCollection, 
-                where("nombrePlanta", ">=", plantName),
-                where("nombrePlanta", "<=", plantName + '\uf8ff')
-            )
-            const querySnapshot = await getDocs(q)
-            const camas = querySnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }))
-            return { success: true, data: camas }
+            return await camaService.searchCamasByPlant(plantName)
         } catch (error) {
-            console.error("❌ Error en búsqueda:", error)
+            console.error("❌ Error en búsqueda (legacy):", error)
             return { success: false, error: "Error al buscar camas" }
         }
     }
 }
-
-// ===================================
-// 🔧 UTILITY FUNCTIONS
-// ===================================
-
-export const firebaseUtils = {
-    // Verificar si un documento existe
-    documentExists: async (collectionName, docId) => {
-        try {
-            const docRef = doc(db, collectionName, docId)
-            const docSnap = await getDoc(docRef)
-            return docSnap.exists()
-        } catch (error) {
-            console.error("❌ Error al verificar documento:", error)
-            return false
-        }
-    },
-
-    // Obtener timestamp del servidor
-    getServerTimestamp: () => serverTimestamp(),
-
-    // Formatear fecha de Firestore
-    formatFirebaseDate: (timestamp) => {
-        if (!timestamp) return null
-        return timestamp.toDate ? timestamp.toDate() : new Date(timestamp)
-    }
-}
-
 
 // ===================================
 // 👨‍💼 ADMIN USER MANAGEMENT SERVICES
@@ -585,5 +509,32 @@ export const adminUserService = {
             console.error("❌ Error obteniendo estadísticas:", error)
             return { success: false, error: "Error al cargar estadísticas" }
         }
+    }
+}
+
+// ===================================
+// 🔧 UTILITY FUNCTIONS
+// ===================================
+
+export const firebaseUtils = {
+    // Verificar si un documento existe
+    documentExists: async (collectionName, docId) => {
+        try {
+            const docRef = doc(db, collectionName, docId)
+            const docSnap = await getDoc(docRef)
+            return docSnap.exists()
+        } catch (error) {
+            console.error("❌ Error al verificar documento:", error)
+            return false
+        }
+    },
+
+    // Obtener timestamp del servidor
+    getServerTimestamp: () => serverTimestamp(),
+
+    // Formatear fecha de Firestore
+    formatFirebaseDate: (timestamp) => {
+        if (!timestamp) return null
+        return timestamp.toDate ? timestamp.toDate() : new Date(timestamp)
     }
 }
