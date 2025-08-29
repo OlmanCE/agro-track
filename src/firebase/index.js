@@ -1,10 +1,10 @@
 // src/firebase/index.js
 /**
  * ============================================================================
- * 🚀 AGRO-TRACK FIREBASE SERVICES - BARREL EXPORTS
+ * 🚀 AGRO-TRACK FIREBASE SERVICES - BARREL EXPORTS v2.0
  * ============================================================================
  * Archivo índice para importar fácilmente todos los servicios de Firebase
- * Estructura organizada por responsabilidades
+ * Estructura organizada por responsabilidades con servicios de camas incluidos
  * ============================================================================
  */
 
@@ -90,13 +90,51 @@ export {
 } from './viveros/viveroUrlService.js';
 
 // ============================================================================
-// 🌿 SERVICIOS DE CAMAS (PRÓXIMAMENTE)
+// 🌿 SERVICIOS DE CAMAS
 // ============================================================================
 
-// TODO: Implementar en siguiente fase
-// export * from './camas/camaService.js';
-// export * from './camas/camaStatsService.js';
-// export * from './camas/cortesService.js';
+// CRUD básico de camas
+export * from './camas/camaService.js';
+export {
+    createCama,
+    getCama,
+    getCamasFromVivero,
+    getAllCamas,
+    updateCama,
+    deleteCama,
+    camaExists,
+    getCamasByPlanta,
+    updateMultipleCamasEstado,
+    getCamasStatsFromVivero
+} from './camas/camaService.js';
+
+// Estadísticas de camas
+export * from './camas/camaStatsService.js';
+export {
+    calculateCamaStats,
+    getCamasComparativeStats,
+    getCamaTrendAnalysis,
+    recalculateMultipleCamasStats,
+    getTopProductiveCamas,
+    generateCamaPerformanceReport
+} from './camas/camaStatsService.js';
+
+// Gestión de cortes de esquejes
+export * from './camas/cortesService.js';
+export {
+    createCorte,
+    getCorte,
+    getCortesFromCama,
+    getCortesFromVivero,
+    updateCorte,
+    deleteCorte,
+    createMultipleCortes,
+    getProduccionStats,
+    getAllCortes,
+    corteExists,
+    getRecentActivity,
+    validateCorteData
+} from './camas/cortesService.js';
 
 // ============================================================================
 // 🔍 SERVICIOS COMPARTIDOS (PRÓXIMAMENTE)
@@ -136,14 +174,52 @@ export const ViveroServices = {
     viveroExists
 };
 
+// Servicios de camas CRUD agrupados
+export const CamaServices = {
+    createCama,
+    getCama,
+    getCamasFromVivero,
+    getAllCamas,
+    updateCama,
+    deleteCama,
+    camaExists,
+    getCamasByPlanta,
+    updateMultipleCamasEstado,
+    getCamasStatsFromVivero
+};
+
 // Servicios de estadísticas agrupados
 export const StatsServices = {
+    // Estadísticas de viveros
     calculateViveroStats,
-    calculateCamaStats,
     getViveroPlantasSummary,
     getViveroWithUpdatedStats,
     recalculateMultipleViverosStats,
-    getGlobalViverosStats
+    getGlobalViverosStats,
+
+    // Estadísticas de camas
+    calculateCamaStats,
+    getCamasComparativeStats,
+    getCamaTrendAnalysis,
+    recalculateMultipleCamasStats,
+    getTopProductiveCamas,
+    generateCamaPerformanceReport
+};
+
+// Servicios de cortes/esquejes agrupados
+export const CortesServices = {
+    createCorte,
+    getCorte,
+    getCortesFromCama,
+    getCortesFromVivero,
+    updateCorte,
+    deleteCorte,
+    createMultipleCortes,
+    getProduccionStats,
+    getAllCortes,
+    corteExists,
+    getRecentActivity,
+    validateCorteData
 };
 
 // Servicios de geolocalización agrupados
@@ -176,7 +252,7 @@ export const UrlServices = {
 };
 
 // ============================================================================
-// 🎯 EXPORT POR DEFECTO - TODOS LOS SERVICIOS
+// 🎯 EXPORT POR DEFECTO - TODOS LOS SERVICIOS v2.0
 // ============================================================================
 
 export default {
@@ -190,7 +266,9 @@ export default {
     AuthServices,
     UserServices,
     ViveroServices,
+    CamaServices,
     StatsServices,
+    CortesServices,
     LocationServices,
     UrlServices,
 
@@ -198,54 +276,108 @@ export default {
     auth: AuthServices,
     users: UserServices,
     viveros: ViveroServices,
+    camas: CamaServices,
     stats: StatsServices,
+    cortes: CortesServices,
     location: LocationServices,
     urls: UrlServices
 };
 
 // ============================================================================
-// 📚 EJEMPLOS DE USO
+// 📚 EJEMPLOS DE USO v2.0
 // ============================================================================
 
 /*
 
-// Ejemplo 1: Importar servicios específicos
-import { createVivero, getVivero, updateViveroGPS } from '@/firebase';
+// Ejemplo 1: Importar servicios específicos de camas
+import { createCama, getCamasFromVivero, createCorte } from '@/firebase';
 
 // Ejemplo 2: Importar servicios agrupados
-import { ViveroServices, LocationServices } from '@/firebase';
+import { CamaServices, CortesServices, StatsServices } from '@/firebase';
 
-// Ejemplo 3: Importar todo
-import FirebaseServices from '@/firebase';
-const vivero = await FirebaseServices.viveros.createVivero(data, user);
-
-// Ejemplo 4: Importar por categoría
-import { 
-    ViveroServices,
-    StatsServices,
-    LocationServices
-} from '@/firebase';
-
-const viveroData = await ViveroServices.createVivero(formData, userEmail);
-const stats = await StatsServices.calculateViveroStats(viveroId);
-const location = await LocationServices.getCurrentGPSLocation();
-
-// Ejemplo 5: Usar en hooks personalizados
+// Ejemplo 3: Usar en hooks personalizados
 import { 
     getAllViveros, 
-    getViveroWithUpdatedStats,
-    validateViveroId 
+    getCamasFromVivero,
+    calculateCamaStats,
+    createCorte 
 } from '@/firebase';
 
-export const useViveros = () => {
-    const [viveros, setViveros] = useState([]);
+export const useCamas = (viveroId) => {
+    const [camas, setCamas] = useState([]);
     
-    const loadViveros = async () => {
-        const data = await getAllViveros({ includeStats: true });
-        setViveros(data);
+    const loadCamas = async () => {
+        const data = await getCamasFromVivero(viveroId);
+        setCamas(data);
     };
     
-    return { viveros, loadViveros };
+    const addCorte = async (camaId, corteData) => {
+        await createCorte(viveroId, camaId, corteData, user.email);
+        await loadCamas(); // Recargar
+    };
+    
+    return { camas, loadCamas, addCorte };
+};
+
+// Ejemplo 4: Workflow completo de vivero → cama → corte
+import { 
+    ViveroServices,
+    CamaServices, 
+    CortesServices,
+    StatsServices 
+} from '@/firebase';
+
+const createFullWorkflow = async () => {
+    // 1. Crear vivero
+    const viveroId = await ViveroServices.createVivero({
+        id: 'vivero-norte',
+        nombre: 'Vivero Norte',
+        descripcion: 'Vivero principal'
+    }, 'admin@email.com');
+
+    // 2. Crear cama en el vivero
+    const camaId = await CamaServices.createCama(viveroId, {
+        id: 'cama01',
+        nombrePlanta: 'Lavanda',
+        cantidadPlantas: 24,
+        sustrato: 'Turba'
+    }, 'admin@email.com');
+
+    // 3. Registrar corte de esquejes
+    const corteId = await CortesServices.createCorte(viveroId, camaId, {
+        fecha: new Date(),
+        cantidadEsquejes: 50,
+        responsable: 'Juan Pérez'
+    }, 'admin@email.com');
+
+    // 4. Calcular estadísticas actualizadas
+    const stats = await StatsServices.calculateCamaStats(viveroId, camaId);
+    
+    return { viveroId, camaId, corteId, stats };
+};
+
+// Ejemplo 5: Dashboard de estadísticas
+import { StatsServices, CortesServices } from '@/firebase';
+
+const getDashboardData = async (viveroId) => {
+    const [
+        viveroStats,
+        camasComparative,
+        recentActivity,
+        topCamas
+    ] = await Promise.all([
+        StatsServices.calculateViveroStats(viveroId),
+        StatsServices.getCamasComparativeStats(viveroId),
+        CortesServices.getRecentActivity(30, viveroId),
+        StatsServices.getTopProductiveCamas({ limit: 5 })
+    ]);
+
+    return {
+        viveroStats,
+        camasComparative,
+        recentActivity,
+        topCamas
+    };
 };
 
 */
