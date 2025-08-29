@@ -121,10 +121,9 @@ const Navbar = () => {
             sx={{ ml: 2 }}
           >
             <Avatar 
-              src={user?.photoURL} 
-              sx={{ width: 32, height: 32 }}
+              sx={{ width: 32, height: 32, bgcolor: 'secondary.main' }}
             >
-              {user?.name?.charAt(0) || user?.email?.charAt(0)}
+              {user?.name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase()}
             </Avatar>
           </IconButton>
 
@@ -142,10 +141,9 @@ const Navbar = () => {
             <Box px={2} py={1}>
               <Box display="flex" alignItems="center" mb={1}>
                 <Avatar 
-                  src={user?.photoURL} 
-                  sx={{ width: 40, height: 40, mr: 2 }}
+                  sx={{ width: 40, height: 40, mr: 2, bgcolor: 'secondary.main' }}
                 >
-                  {user?.name?.charAt(0) || user?.email?.charAt(0)}
+                  {user?.name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase()}
                 </Avatar>
                 <Box>
                   <Typography variant="body2" fontWeight="medium">

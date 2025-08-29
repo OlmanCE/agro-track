@@ -24,8 +24,7 @@ export const signInWithGoogle = async () => {
         await createOrUpdateUser({
             uid: user.uid,
             email: user.email,
-            name: user.displayName,
-            photoURL: user.photoURL
+            name: user.displayName
         });
 
         // Obtener datos completos del usuario desde Firestore
@@ -35,7 +34,6 @@ export const signInWithGoogle = async () => {
             uid: user.uid,
             email: user.email,
             name: user.displayName,
-            photoURL: user.photoURL,
             ...userData // Incluye isAdmin, createdAt, etc.
         };
 
@@ -74,7 +72,6 @@ export const getCurrentUser = async () => {
             uid: user.uid,
             email: user.email,
             name: user.displayName,
-            photoURL: user.photoURL,
             ...userData
         };
     } catch (error) {
@@ -83,7 +80,6 @@ export const getCurrentUser = async () => {
             uid: user.uid,
             email: user.email,
             name: user.displayName,
-            photoURL: user.photoURL,
             isAdmin: false // Valor por defecto si hay error
         };
     }
@@ -104,7 +100,6 @@ export const onAuthChange = (callback) => {
                     uid: user.uid,
                     email: user.email,
                     name: user.displayName,
-                    photoURL: user.photoURL,
                     ...userData
                 };
                 callback(fullUserData);
@@ -115,7 +110,6 @@ export const onAuthChange = (callback) => {
                     uid: user.uid,
                     email: user.email,
                     name: user.displayName,
-                    photoURL: user.photoURL,
                     isAdmin: false
                 });
             }

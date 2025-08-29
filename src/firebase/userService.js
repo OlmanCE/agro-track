@@ -22,18 +22,17 @@ import { db } from "./config.js";
  */
 export const createOrUpdateUser = async (userData) => {
     try {
-        const { uid, email, name, photoURL } = userData;
+        const { uid, email, name } = userData;
         const userRef = doc(db, "users", uid);
 
         // Verificar si el usuario ya existe
         const userDoc = await getDoc(userRef);
 
         if (userDoc.exists()) {
-            // Usuario existente - actualizar solo lastLogin y nombre/foto
+            // Usuario existente - actualizar solo lastLogin y nombre
             console.log("👤 Actualizando usuario existente:", email);
             await updateDoc(userRef, {
                 name,
-                photoURL,
                 lastLogin: serverTimestamp()
             });
         } else {
