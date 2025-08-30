@@ -100,6 +100,7 @@ export const useCamas = (viveroId, options = {}) => {
                 camasData = await Promise.all(
                     camasData.map(async (cama) => {
                         try {
+                            // Usar la función correcta del StatsServices
                             const stats = await StatsServices.calculateCamaStats(viveroId, cama.id);
                             return { ...cama, estadisticas: stats };
                         } catch (error) {
@@ -250,7 +251,7 @@ export const useCamas = (viveroId, options = {}) => {
 
             // Generar ID si no se proporciona
             if (!camaData.id) {
-                const maxId = camas.length > 0 
+                const maxId = camas.length > 0
                     ? Math.max(...camas.map(c => parseInt(c.id.replace(/\D/g, '')) || 0))
                     : 0;
                 camaData.id = UrlServices.generateCamaId('cama', maxId + 1);

@@ -13,21 +13,36 @@ import {
   MenuItem,
   Box,
   Divider,
-  Chip
+  Chip,
+  Drawer,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  ListItemButton,
+  useTheme,
+  useMediaQuery
 } from '@mui/material';
 import {
   Agriculture as AgricultureIcon,
   AdminPanelSettings as AdminIcon,
   Home as HomeIcon,
   Logout as LogoutIcon,
-  Person as PersonIcon
+  Person as PersonIcon,
+  Dashboard as DashboardIcon,
+  Menu as MenuIcon
 } from '@mui/icons-material';
 
 const Navbar = () => {
   const { user, logout, isAdmin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
+  // Estados para menús
   const [anchorEl, setAnchorEl] = useState(null);
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -37,10 +52,15 @@ const Navbar = () => {
     setAnchorEl(null);
   };
 
+  const handleDrawerToggle = () => {
+    setMobileDrawerOpen(!mobileDrawerOpen);
+  };
+
   const handleLogout = async () => {
     try {
       await logout();
       handleMenuClose();
+      setMobileDrawerOpen(false);
       navigate('/login');
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
@@ -50,83 +70,265 @@ const Navbar = () => {
   const handleNavigation = (path) => {
     navigate(path);
     handleMenuClose();
+    setMobileDrawerOpen(false);
   };
 
   const isCurrentPath = (path) => location.pathname === path;
 
-  return (
-    <AppBar position="static" elevation={2}>
-      <Toolbar>
-        {/* Logo y título */}
-        <Box display="flex" alignItems="center" flexGrow={1}>
-          <AgricultureIcon sx={{ fontSize: 30, mr: 1 }} />
-          <Typography 
-            variant="h6" 
-            component="div" 
-            sx={{ 
-              fontWeight: 'bold',
-              cursor: 'pointer'
-            }}
-            onClick={() => handleNavigation('/')}
-          >
+  // Rutas de navegación principal
+  const navigationItems = [
+    {
+      label: 'Inicio',
+      path: '/',
+      icon: <HomeIcon />,
+      show: true
+    },
+    {
+      label: 'Viveros',
+      path: '/viveros',
+      icon: <AgricultureIcon />,
+      show: true
+    },
+    {
+      label: 'Dashboard',
+      path: '/dashboard',
+      icon: <DashboardIcon />,
+      show: true,
+      disabled: true, // Próximamente
+      tooltip: 'Próximamente'
+    },
+    {
+      label: 'Admin',
+      path: '/admin',
+      icon: <AdminIcon />,
+      show: isAdmin
+    }
+  ];
+
+  // ============================================================================
+  // 📱 DRAWER MÓVIL
+  // ============================================================================
+
+  const MobileDrawer = () => (
+    <Drawer
+      anchor="left"
+      open={mobileDrawerOpen}
+      onClose={handleDrawerToggle}
+      sx={{
+        '& .MuiDrawer-paper': {
+          width: 280,
+          boxSizing: 'border-box'
+        }
+      }}
+    >
+      {/* Header del drawer */}
+      <Box sx={{ p: 2, bgcolor: 'primary.main', color: 'white' }}>
+        <Box display="flex" alignItems="center" mb={1}>
+          <AgricultureIcon sx={{ fontSize: 24, mr: 1 }} />
+          <Typography variant="h6" fontWeight="bold">
             Agro-Track
           </Typography>
-          
-          {/* Indicador de versión */}
           <Chip 
-            label="v1.0" 
+            label="v2.0" 
             size="small" 
             sx={{ 
-              ml: 2,
+              ml: 1,
               backgroundColor: 'rgba(255,255,255,0.2)',
               color: 'white',
               fontSize: '0.7rem'
             }} 
           />
         </Box>
-
-        {/* Navegación principal */}
-        <Box display="flex" alignItems="center" gap={1}>
-          {/* Botón Home */}
-          <Button
-            color="inherit"
-            startIcon={<HomeIcon />}
-            onClick={() => handleNavigation('/')}
-            sx={{
-              backgroundColor: isCurrentPath('/') ? 'rgba(255,255,255,0.1)' : 'transparent'
-            }}
+        
+        {/* Info del usuario */}
+        <Box display="flex" alignItems="center">
+          <Avatar 
+            sx={{ width: 32, height: 32, mr: 2, bgcolor: 'secondary.main' }}
           >
-            Inicio
-          </Button>
+            {user?.name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase()}
+          </Avatar>
+          <Box>
+            <Typography variant="body2" fontWeight="medium">
+              {user?.name || 'Usuario'}
+            </Typography>
+            <Typography variant="caption" sx={{ opacity: 0.8 }}>
+              {isAdmin ? 'Administrador' : 'Usuario'}
+            </Typography>
+          </Box>
+        </Box>
+      </Box>
 
-          {/* Botón Admin (solo para administradores) */}
-          {isAdmin && (
-            <Button
+      <Divider />
+
+      {/* Navegación */}
+      <List sx={{ pt: 1 }}>
+        {navigationItems
+          .filter(item => item.show)
+          .map((item) => (
+            <ListItem key={item.path} disablePadding>
+              <ListItemButton
+                onClick={() => handleNavigation(item.path)}
+                disabled={item.disabled}
+                sx={{
+                  backgroundColor: isCurrentPath(item.path) 
+                    ? 'rgba(76, 175, 80, 0.1)' 
+                    : 'transparent',
+                  '&:hover': {
+                    backgroundColor: 'rgba(76, 175, 80, 0.05)'
+                  }
+                }}
+              >
+                <ListItemIcon sx={{ color: isCurrentPath(item.path) ? 'primary.main' : 'inherit' }}>
+                  {item.icon}
+                </ListItemIcon>
+                <ListItemText 
+                  primary={item.label}
+                  sx={{ 
+                    '& .MuiListItemText-primary': {
+                      fontWeight: isCurrentPath(item.path) ? 600 : 400,
+                      color: isCurrentPath(item.path) ? 'primary.main' : 'inherit'
+                    }
+                  }}
+                />
+                {item.disabled && (
+                  <Chip 
+                    label="Próximo" 
+                    size="small" 
+                    color="default"
+                    sx={{ fontSize: '0.6rem' }}
+                  />
+                )}
+              </ListItemButton>
+            </ListItem>
+          ))
+        }
+      </List>
+
+      <Divider />
+
+      {/* Cerrar sesión */}
+      <List>
+        <ListItem disablePadding>
+          <ListItemButton onClick={handleLogout}>
+            <ListItemIcon>
+              <LogoutIcon />
+            </ListItemIcon>
+            <ListItemText primary="Cerrar Sesión" />
+          </ListItemButton>
+        </ListItem>
+      </List>
+    </Drawer>
+  );
+
+  // ============================================================================
+  // 💻 NAVBAR DESKTOP
+  // ============================================================================
+
+  return (
+    <>
+      <AppBar position="static" elevation={2}>
+        <Toolbar>
+          {/* Menú móvil */}
+          {isMobile && (
+            <IconButton
+              edge="start"
               color="inherit"
-              startIcon={<AdminIcon />}
-              onClick={() => handleNavigation('/admin')}
-              sx={{
-                backgroundColor: isCurrentPath('/admin') ? 'rgba(255,255,255,0.1)' : 'transparent'
-              }}
+              onClick={handleDrawerToggle}
+              sx={{ mr: 2 }}
             >
-              Admin
-            </Button>
+              <MenuIcon />
+            </IconButton>
           )}
 
-          {/* Menú de usuario */}
-          <IconButton
-            edge="end"
-            color="inherit"
-            onClick={handleMenuOpen}
-            sx={{ ml: 2 }}
+          {/* Logo y título */}
+          <Box 
+            display="flex" 
+            alignItems="center" 
+            flexGrow={1}
+            sx={{ cursor: 'pointer' }}
+            onClick={() => handleNavigation('/')}
           >
-            <Avatar 
-              sx={{ width: 32, height: 32, bgcolor: 'secondary.main' }}
+            <AgricultureIcon sx={{ fontSize: 30, mr: 1 }} />
+            <Typography 
+              variant="h6" 
+              component="div" 
+              sx={{ fontWeight: 'bold' }}
             >
-              {user?.name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase()}
-            </Avatar>
-          </IconButton>
+              Agro-Track
+            </Typography>
+            
+            {/* Indicador de versión */}
+            <Chip 
+              label="v2.0" 
+              size="small" 
+              sx={{ 
+                ml: 2,
+                backgroundColor: 'rgba(255,255,255,0.2)',
+                color: 'white',
+                fontSize: '0.7rem'
+              }} 
+            />
+          </Box>
 
+          {/* Navegación desktop */}
+          {!isMobile && (
+            <Box display="flex" alignItems="center" gap={1}>
+              {navigationItems
+                .filter(item => item.show)
+                .map((item) => (
+                  <Button
+                    key={item.path}
+                    color="inherit"
+                    startIcon={item.icon}
+                    onClick={() => handleNavigation(item.path)}
+                    disabled={item.disabled}
+                    sx={{
+                      backgroundColor: isCurrentPath(item.path) 
+                        ? 'rgba(255,255,255,0.1)' 
+                        : 'transparent',
+                      '&:hover': {
+                        backgroundColor: 'rgba(255,255,255,0.05)'
+                      },
+                      position: 'relative'
+                    }}
+                  >
+                    {item.label}
+                    {item.disabled && (
+                      <Chip 
+                        label="Próximo" 
+                        size="small" 
+                        sx={{ 
+                          ml: 1,
+                          fontSize: '0.6rem',
+                          height: '16px',
+                          backgroundColor: 'rgba(255,255,255,0.2)',
+                          color: 'white'
+                        }}
+                      />
+                    )}
+                  </Button>
+                ))
+              }
+            </Box>
+          )}
+
+          {/* Menú de usuario desktop */}
+          {!isMobile && (
+            <IconButton
+              edge="end"
+              color="inherit"
+              onClick={handleMenuOpen}
+              sx={{ ml: 2 }}
+            >
+              <Avatar 
+                sx={{ width: 32, height: 32, bgcolor: 'secondary.main' }}
+              >
+                {user?.name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase()}
+              </Avatar>
+            </IconButton>
+          )}
+
+          {/* Menú desplegable de usuario (desktop) */}
           <Menu
             anchorEl={anchorEl}
             open={Boolean(anchorEl)}
@@ -168,13 +370,21 @@ const Navbar = () => {
 
             <Divider />
 
-            {/* Opciones de navegación */}
+            {/* Navegación rápida */}
             <MenuItem 
               onClick={() => handleNavigation('/')}
               disabled={isCurrentPath('/')}
             >
               <HomeIcon sx={{ mr: 2 }} />
               Inicio
+            </MenuItem>
+
+            <MenuItem 
+              onClick={() => handleNavigation('/viveros')}
+              disabled={isCurrentPath('/viveros')}
+            >
+              <AgricultureIcon sx={{ mr: 2 }} />
+              Viveros
             </MenuItem>
 
             {isAdmin && (
@@ -195,9 +405,12 @@ const Navbar = () => {
               Cerrar Sesión
             </MenuItem>
           </Menu>
-        </Box>
-      </Toolbar>
-    </AppBar>
+        </Toolbar>
+      </AppBar>
+
+      {/* Drawer móvil */}
+      <MobileDrawer />
+    </>
   );
 };
 
